@@ -1,33 +1,97 @@
-import { useState } from "react";
-import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
-import "./App.css";
+import {
+  useState,
+  useEffect,
+  ChangeEvent,
+  ChangeEventHandler,
+  useCallback,
+} from "react";
+import { User, data } from "./utils/data";
 
+import { Chip } from "./components/Chip";
+import { Avatar } from "./components/Avatar";
+import { getData } from "./utils/getData";
+import styled from "styled-components";
+import { InputDropDown } from "./components/InputDropdown";
+const ChipContainer = styled.ul`
+  border-bottom: 4px solid palevioletred;
+  border-radius: 0.5rem;
+  padding: 0.5rem;
+  width: 80vw;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: auto;
+  & > li {
+    list-style: none;
+  }
+  &:focus {
+    border: 4px solid palevioletred;
+  }
+`;
 function App() {
-  const [count, setCount] = useState(0);
+  const [users, setUsers] = useState<User[]>(data);
+  const [inputValue, setInputValue] = useState<string>("");
+  const [selected, setSelected] = useState<User[]>([]);
+  const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
+    (e: ChangeEvent<HTMLInputElement>) => {
+      setInputValue(e.target.value);
+    },
+    [],
+  );
+  const handleSelectUser = useCallback((user: User) => {
+    setInputValue("");
+    setSelected((prev) => [...prev, user]);
+  }, []);
+  const handleRemoveUser = useCallback((user: User) => {
+    setSelected((prev) => prev.filter((entry) => entry.id !== user.id));
+  }, []);
+  useEffect(() => {
+    let isStale = false;
+    const fetchData = async (inputValue: string) => {
+      try {
+        const data = await getData(inputValue);
+        return setUsers(
+          data.filter((user) => {
+            return !selected.find((selected) => selected.id === user.id);
+          }),
+        );
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    if (!isStale) {
+      fetchData(inputValue);
+    }
 
+    return () => {
+      isStale = true;
+    };
+  }, [inputValue, selected]);
   return (
     <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <ChipContainer>
+        {selected.map((user) => {
+          const { id, name, email, imageUrl } = user;
+          return (
+            <Chip
+              key={id}
+              email={email}
+              name={name}
+              avatar={<Avatar src={imageUrl} alt={name} />}
+              handleRemoveUser={handleRemoveUser}
+              user={user}
+            />
+          );
+        })}
+        <InputDropDown
+          inputValue={inputValue}
+          handleInputChange={handleInputChange}
+          users={users}
+          handleSelectUser={handleSelectUser}
+        />
+      </ChipContainer>
     </>
   );
 }
