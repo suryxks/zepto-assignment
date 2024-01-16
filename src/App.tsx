@@ -4,6 +4,8 @@ import {
   ChangeEvent,
   ChangeEventHandler,
   useCallback,
+  useRef,
+  ElementRef,
 } from "react";
 import { User, data } from "./utils/data";
 
@@ -34,6 +36,7 @@ function App() {
   const [users, setUsers] = useState<User[]>(data);
   const [inputValue, setInputValue] = useState<string>("");
   const [selected, setSelected] = useState<User[]>([]);
+  const inputRef = useRef<ElementRef<"input">>(null);
   const handleInputChange: ChangeEventHandler<HTMLInputElement> = useCallback(
     (e: ChangeEvent<HTMLInputElement>) => {
       setInputValue(e.target.value);
@@ -43,9 +46,11 @@ function App() {
   const handleSelectUser = useCallback((user: User) => {
     setInputValue("");
     setSelected((prev) => [...prev, user]);
+    inputRef.current?.focus();
   }, []);
   const handleRemoveUser = useCallback((user: User) => {
     setSelected((prev) => prev.filter((entry) => entry.id !== user.id));
+    inputRef.current?.focus();
   }, []);
   useEffect(() => {
     let isStale = false;
@@ -90,6 +95,7 @@ function App() {
           handleInputChange={handleInputChange}
           users={users}
           handleSelectUser={handleSelectUser}
+          ref={inputRef}
         />
       </ChipContainer>
     </>

@@ -1,9 +1,19 @@
-import { ChangeEventHandler, FC, useRef, useState } from "react";
+import {
+  ChangeEventHandler,
+  FC,
+  useRef,
+  useState,
+  forwardRef,
+  Ref,
+  ElementType,
+  ElementRef,
+} from "react";
 import styled from "styled-components";
 import { User } from "../utils/data";
 import { UserCard } from "./UserCard";
 import { Avatar } from "./Avatar";
 import { useOnClickOutside } from "../hooks/useOnClickOutside";
+
 const Input = styled.input`
   width: auto;
   border: none;
@@ -25,49 +35,47 @@ interface InputDropDown {
   users: User[];
   handleSelectUser: (user: User) => void;
 }
-export const InputDropDown: FC<InputDropDown> = ({
-  inputValue,
-  handleInputChange,
-  users,
-  handleSelectUser,
-}) => {
-  const [open, setOpen] = useState<boolean>(true);
-  const dropDownRef = useRef(null);
-  const inputRef = useRef(null);
-  useOnClickOutside(dropDownRef, () => setOpen(false));
-  return (
-    <InputDropdownWrapper ref={dropDownRef}>
-      <Input
-        type="text"
-        autoFocus
-        onFocus={() => {
-          setOpen(true);
-        }}
-        value={inputValue}
-        onChange={handleInputChange}
-        ref={inputRef}
-      />
-      {open && (
-        <DropDownWrapper>
-          {users.length > 0 ? (
-            users.map((user) => {
-              const { imageUrl, name, id, email } = user;
-              return (
-                <UserCard
-                  key={id}
-                  avatar={<Avatar src={imageUrl} alt={name} />}
-                  name={name}
-                  email={email}
-                  user={user}
-                  handleSelectUser={handleSelectUser}
-                />
-              );
-            })
-          ) : (
-            <div>No data</div>
-          )}
-        </DropDownWrapper>
-      )}
-    </InputDropdownWrapper>
-  );
-};
+type Ref = ElementRef<"input">;
+export const InputDropDown = forwardRef<Ref, InputDropDown>(
+  ({ inputValue, handleInputChange, users, handleSelectUser }, ref) => {
+    const [open, setOpen] = useState<boolean>(true);
+    const dropDownRef = useRef(null);
+    useOnClickOutside(dropDownRef, () => setOpen(false));
+    return (
+      <InputDropdownWrapper ref={dropDownRef}>
+        <Input
+          type="text"
+          autoFocus
+          onFocus={() => {
+            setOpen(true);
+          }}
+          value={inputValue}
+          onChange={handleInputChange}
+          ref={ref}
+        />
+        {open && (
+          <DropDownWrapper>
+            {users.length > 0 ? (
+              users.map((user) => {
+                const { imageUrl, name, id, email } = user;
+                return (
+                  <UserCard
+                    key={id}
+                    avatar={<Avatar src={imageUrl} alt={name} />}
+                    name={name}
+                    email={email}
+                    user={user}
+                    handleSelectUser={handleSelectUser}
+                  />
+                );
+              })
+            ) : (
+              <div>No data</div>
+            )}
+          </DropDownWrapper>
+        )}
+      </InputDropdownWrapper>
+    );
+  },
+);
+// const InputSelect = forwardRef<Ref & InputDropDown>(InputDropDown);
