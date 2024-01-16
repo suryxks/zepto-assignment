@@ -1,11 +1,8 @@
 import {
   ChangeEventHandler,
-  FC,
   useRef,
   useState,
   forwardRef,
-  Ref,
-  ElementType,
   ElementRef,
 } from "react";
 import styled from "styled-components";
